@@ -22,6 +22,28 @@ public class EnemySpawner : MonoBehaviour
     public float spawnCastHeight = 20f;      // ray down from above
     public float spawnUpOffset   = 0.05f;
 
+    [Header("Control")]
+    [Tooltip("If false, Update() will not spawn new enemies.")]
+    public bool spawningEnabled = true;
+
+    [Header("Quota")]
+    [Tooltip("How many enemies may spawn this wave. -1 = infinite.")]
+    public int spawnQuotaRemaining = -1;
+    [Tooltip("How many enemies spawned during the current wave.")]
+    public int spawnedThisWave = 0;
+    [Tooltip("Total enemies spawned since the game began.")]
+    public int totalSpawned = 0;
+
+    // Expose current alive count for UI/logic
+    public int AliveCount => alive.Count;
+
+    // Reset per-wave quota and counter
+    public void ResetWaveQuota(int quota)
+    {
+        spawnQuotaRemaining = quota;
+        spawnedThisWave = 0;
+    }
+
     [Header("Rewards / XP")]
     [Tooltip("XP given to the player for each enemy killed (kept here to avoid changing EnemySO).")]
     public int xpPerKill = 5;
@@ -57,6 +79,9 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
+        if (!spawningEnabled) return;
+        if (spawnQuotaRemaining == 0) return; // quota exhausted this wave
+
         if ((player == null && (additionalTargets == null || additionalTargets.Length == 0)) ||
             enemyTypes == null || enemyTypes.Length == 0)
             return;
@@ -85,6 +110,10 @@ public class EnemySpawner : MonoBehaviour
         // NOTE: Enemy.Init signature unchanged
         enemy.Init(so, BuildTargetsArray(), this);
         alive.Add(enemy);
+
+        spawnedThisWave++;
+        totalSpawned++;
+        if (spawnQuotaRemaining > 0) spawnQuotaRemaining--;
     }
 
     Transform[] BuildTargetsArray()

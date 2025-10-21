@@ -76,3 +76,8 @@ public class PlayerXP : MonoBehaviour
         return xpToNext > 0 ? (float)currentXP / xpToNext : 0f;
     }
 }
+
+
+
+
+

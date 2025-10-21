@@ -18,13 +18,23 @@ public class Enemy : MonoBehaviour
     float lastRetarget;
 
     // --- Ownership / Rewards ---
-    EnemySpawner spawner;           // who spawned me (for pooling & XP sink)
+    EnemySpawner spawner;           // who spawned (for pooling & XP sink)
 
-    // --- Health ---
+    // --- Health (enemy's own) ---
     int currentHP;
 
     [Header("Visual")]
-    public Transform visualRoot;    // optional child to scale
+    public Transform visualRoot;    // child to spown
+
+    // --- Attack (NEW) ---
+    [Header("Attack")]
+    [Tooltip("Damage dealt to the target each hit.")]
+    public float attackDamage = 10f;
+
+    [Tooltip("Attacks per second while within stop distance.")]
+    public float attackRate = 1.0f;
+
+    float attackCooldown;
 
     // SIGNATURE UNCHANGED
     public void Init(EnemySO so, Transform[] followTargets, EnemySpawner owner)
@@ -43,6 +53,7 @@ public class Enemy : MonoBehaviour
         PickNearest(force: true);
 
         gameObject.SetActive(true);
+        attackCooldown = 0f;
     }
 
     void Update()
@@ -71,6 +82,27 @@ public class Enemy : MonoBehaviour
                 transform.rotation = look;
             }
         }
+        else
+        {
+            // In range -> try attack (NEW)
+            TryAttackCurrentTarget();
+        }
+
+        if (attackCooldown > 0f) attackCooldown -= Time.deltaTime;
+    }
+
+    void TryAttackCurrentTarget()
+    {
+        if (attackCooldown > 0f || currentTarget == null) return;
+
+        // Uses YOUR existing Health script (float HP with UnityEvents)
+        var hp = currentTarget.GetComponentInParent<Health>();
+        if (hp != null)
+        {
+            hp.TakeDamage(attackDamage);
+        }
+
+        attackCooldown = 1f / Mathf.Max(0.01f, attackRate);
     }
 
     void PickNearest(bool force)
