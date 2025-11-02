@@ -16,4 +16,6 @@ public class TowerSO : ScriptableObject
     public int damage = 5;
     public float bulletSpeed = 18f;
     public GameObject projectilePrefab;
+    //public AudioClip shootSFX;
+
 }

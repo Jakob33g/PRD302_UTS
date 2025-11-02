@@ -23,7 +23,8 @@ public class Projectile : MonoBehaviour
 
         rb.isKinematic = true;
         rb.useGravity  = false;
-        col.isTrigger  = true;
+        col.isTrigger = true;
+
     }
 
     void Update()
@@ -53,18 +54,16 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Only care about Enemy
-        var e = other.GetComponentInParent<Enemy>();
+        var e = other.GetComponentInParent<EnemyTest>();
         if (e != null)
         {
             e.TakeDamage(damage);
             Destroy(gameObject);
         }
     }
-
     void HitTarget()
     {
-        var e = target.GetComponentInParent<Enemy>();
+        var e = target.GetComponentInParent<EnemyTest>();
         if (e != null) e.TakeDamage(damage);
         Destroy(gameObject);
     }

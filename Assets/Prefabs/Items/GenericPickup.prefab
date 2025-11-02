@@ -110,6 +110,8 @@ MonoBehaviour:
   bobAmplitude: 0.05
   bobSpeed: 3
   autoPickup: 0
+  pickupSFX: {fileID: 8300000, guid: 775db4ad3979dfb42ac1cd288f38036d, type: 3}
+  audioSource: {fileID: 0}
 --- !u!65 &630379390270121704
 BoxCollider:
   m_ObjectHideFlags: 0
