@@ -12,24 +12,13 @@ public class WorldPickup : MonoBehaviour
     public float bobSpeed = 3f;
     public bool autoPickup = false;       // if true, picks up on enter (no key)
 
-    public AudioClip pickupSFX;
-    public AudioSource audioSource;
-
     bool inRange;
     Inventory inv;
     Vector3 basePos;
 
-    ResourceTest invNew;
-
     void Start()
     {
         basePos = transform.position;
-
-        if (!audioSource)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-        }
     }
 
     void Update()
@@ -50,7 +39,6 @@ public class WorldPickup : MonoBehaviour
         {
             inRange = true;
             inv = other.GetComponent<Inventory>();
-            invNew = other.GetComponent<ResourceTest>(); // lauren fix
         }
     }
 
@@ -67,15 +55,7 @@ public class WorldPickup : MonoBehaviour
     {
         if (inv == null || item == null || amount <= 0) return;
 
-        invNew.AddResource(item, amount);
-
         int leftover = inv.AddItem(item, amount);
-
-        if (pickupSFX && audioSource)
-        {
-            audioSource.PlayOneShot(pickupSFX);
-        }
-
         if (leftover == 0)
         {
             // fully stored -> remove pickup
