@@ -167,13 +167,20 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
-        // Award XP through spawner (only if PlayerXP is wired)
+        // Give XP to the player when enemy dies
         if (spawner != null && spawner.playerXP != null && spawner.xpPerKill > 0)
         {
-            spawner.playerXP.GainXP(spawner.xpPerKill);
+            int baseXP = spawner.xpPerKill;
+            // Apply XP bonus from skill tree (if player has XP bonus skills)
+            if (spawner.skillTree != null)
+            {
+                float xpMultiplier = spawner.skillTree.GetXPBonusModifier();
+                baseXP = Mathf.RoundToInt(baseXP * xpMultiplier);
+            }
+            spawner.playerXP.GainXP(baseXP);
         }
 
-        // Return to pool
+        // Put enemy back in the pool so it can be reused
         if (spawner) spawner.Despawn(this);
         else gameObject.SetActive(false);
     }

@@ -44,11 +44,13 @@ public class EnemySpawner : MonoBehaviour
         spawnedThisWave = 0;
     }
 
-    [Header("Rewards / XP")]
-    [Tooltip("XP given to the player for each enemy killed (kept here to avoid changing EnemySO).")]
+    [Header("Rewards - What Player Gets for Killing")]
+    [Tooltip("How much XP the player gets for each enemy killed")]
     public int xpPerKill = 5;
-    [Tooltip("Who receives XP. If not assigned, we'll try to read PlayerXP from 'player'.")]
+    [Tooltip("The player's XP component - will find it automatically if not assigned")]
     public PlayerXP playerXP;
+    [Tooltip("Player's SkillTree for XP bonus skills (finds automatically)")]
+    public SkillTree skillTree;
 
     // --- internals ---
     readonly List<Enemy> alive = new();
@@ -63,9 +65,13 @@ public class EnemySpawner : MonoBehaviour
             if (p) player = p.transform;
         }
 
-        // Auto-wire PlayerXP if possible (safe if PlayerXP not present)
+        // Find player's XP component automatically
         if (!playerXP && player != null)
             playerXP = player.GetComponent<PlayerXP>();
+
+        // Find player's SkillTree automatically (for XP bonuses)
+        if (!skillTree && player != null)
+            skillTree = player.GetComponent<SkillTree>();
 
         if (enemyTypes != null)
         {
