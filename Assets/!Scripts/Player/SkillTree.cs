@@ -13,10 +13,9 @@ public class SkillTree : MonoBehaviour
     [Tooltip("Put all your skill assets here - drag them from the Project window")]
     public SkillSO[] allSkills;
 
-    // Keeps track of which skills are unlocked and at what rank
     private Dictionary<string, int> unlockedSkills = new Dictionary<string, int>();
 
-    // Saves the calculated bonuses so we don't have to calculate them every frame
+    // Cached modifiers (calculated once, reused)
     private float cachedHealthModifier;
     private float cachedMoveSpeedModifier;
     private float cachedDefenseModifier;
@@ -26,11 +25,8 @@ public class SkillTree : MonoBehaviour
     private float cachedTowerFireRateModifier;
     private bool modifiersDirty = true;
 
-    // Things that happen when skills change - other scripts can listen to these
-    public event Action<SkillSO, int> onSkillUnlocked;  // Fires when you unlock a skill
-    public event Action onSkillsChanged;                 // Fires when any skill changes
-
-    // These functions give other scripts the bonus values from your unlocked skills
+    public event Action<SkillSO, int> onSkillUnlocked;
+    public event Action onSkillsChanged;
     public float GetHealthModifier()
     {
         if (modifiersDirty) RecalculateModifiers();
@@ -75,7 +71,6 @@ public class SkillTree : MonoBehaviour
 
     void RecalculateModifiers()
     {
-        // Start with zero for all bonuses
         float healthFlat = 0f, healthPercent = 0f;
         float speedFlat = 0f, speedPercent = 0f;
         float defensePercent = 0f;
@@ -84,13 +79,12 @@ public class SkillTree : MonoBehaviour
         float towerRangePercent = 0f;
         float towerFireRatePercent = 0f;
 
-        // Go through all unlocked skills and add up their bonuses
         foreach (var kvp in unlockedSkills)
         {
             var skill = FindSkill(kvp.Key);
             if (skill == null) continue;
 
-            int rank = kvp.Value;  // How many times you've bought this skill
+            int rank = kvp.Value;
             switch (skill.skillType)
             {
                 case SkillType.Health:
@@ -119,7 +113,6 @@ public class SkillTree : MonoBehaviour
             }
         }
 
-        // Calculate the final bonus amounts and save them
         float baseHealth = playerHealth != null ? playerHealth.baseMaxHealth : 100f;
         cachedHealthModifier = healthFlat + (baseHealth * healthPercent);
 
@@ -132,27 +125,39 @@ public class SkillTree : MonoBehaviour
         cachedTowerRangeModifier = 1f + towerRangePercent;
         cachedTowerFireRateModifier = 1f + towerFireRatePercent;
 
-        modifiersDirty = false;  // Mark as calculated
+        modifiersDirty = false;
     }
 
     void Awake()
     {
-        // Try to find these components on the same GameObject if they weren't assigned
-        if (!playerXP)
-            playerXP = GetComponent<PlayerXP>();
-        if (!playerHealth)
-            playerHealth = GetComponent<Health>();
-        if (!playerController)
-            playerController = GetComponent<PlayerController>();
+        if (!playerXP) playerXP = GetComponent<PlayerXP>();
+        if (!playerHealth) playerHealth = GetComponent<Health>();
+        if (!playerController) playerController = GetComponent<PlayerController>();
+        
+        if (playerHealth != null)
+            playerHealth.onDeath.AddListener(OnPlayerDeath);
     }
+    
+    void OnDestroy()
+    {
+        if (playerHealth != null)
+            playerHealth.onDeath.RemoveListener(OnPlayerDeath);
+    }
+
+    [Header("Reset Settings")]
+    [Tooltip("If true, skills reset every time you press Play. If false, skills save between sessions.")]
+    public bool resetSkillsOnStart = true;
 
     void Start()
     {
         modifiersDirty = true;
-        ApplyAllModifiers();
         
-        // Try to load skills from last time you played
-        LoadSkills();
+        if (resetSkillsOnStart)
+            ResetAllSkills();
+        else
+            LoadSkills();
+        
+        ApplyAllModifiers();
     }
 
     public bool CanUnlockSkill(SkillSO skill)
@@ -308,7 +313,38 @@ public class SkillTree : MonoBehaviour
 
     void OnApplicationFocus(bool hasFocus)
     {
-        if (!hasFocus) SaveSkills();
+        if (!hasFocus && !resetSkillsOnStart) SaveSkills();
+    }
+    
+    // Reset all unlocked skills (useful for testing or when player dies)
+    public void ResetAllSkills()
+    {
+        unlockedSkills.Clear();
+        modifiersDirty = true;
+        ApplyAllModifiers();
+        onSkillsChanged?.Invoke();
+        
+        // Clear saved skills from PlayerPrefs
+        int count = PlayerPrefs.GetInt("SkillCount", 0);
+        for (int i = 0; i < count; i++)
+        {
+            PlayerPrefs.DeleteKey($"Skill_{i}_ID");
+            PlayerPrefs.DeleteKey($"Skill_{i}_Rank");
+        }
+        PlayerPrefs.DeleteKey("SkillCount");
+        PlayerPrefs.Save();
+        
+        Debug.Log("[SkillTree] All skills reset!");
+    }
+    
+    // Called automatically when player dies (connected to Health.onDeath event)
+    void OnPlayerDeath()
+    {
+        if (resetSkillsOnStart)
+        {
+            ResetAllSkills();
+            Debug.Log("[SkillTree] Player died - skills reset!");
+        }
     }
 }
 

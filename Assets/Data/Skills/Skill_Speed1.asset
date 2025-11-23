@@ -10,15 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 652a66a4de4294a929b6cf6d074b2ae9, type: 3}
-  m_Name: Skill_Health1
+  m_Name: Skill_Speed1
   m_EditorClassIdentifier: Assembly-CSharp::SkillSO
-  skillName: New Skill
-  description: Skill description
+  skillID: 
+  skillName: Speed Boost
+  description: Increases your movement speed by 20%
   icon: {fileID: 0}
-  skillType: 0
+  skillType: 1
   flatBonus: 0
-  percentBonus: 0
+  percentBonus: 0.2
   requiredLevel: 1
   prerequisites: []
   skillPointCost: 1
-  maxRank: 1
+  maxRank: 3
+

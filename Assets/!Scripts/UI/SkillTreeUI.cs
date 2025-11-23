@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class SkillTreeUI : MonoBehaviour
 {
@@ -61,7 +64,23 @@ public class SkillTreeUI : MonoBehaviour
 
         if (skillTreePanel)
         {
-            skillTreePanel.SetActive(false);
+            // IMPORTANT: If SkillTreeUI is on the same GameObject as skillTreePanel,
+            // we can't disable the panel or the component will be disabled too!
+            // Instead, disable all child UI elements but keep the panel active
+            if (skillTreePanel == this.gameObject)
+            {
+                Debug.LogWarning("[SkillTreeUI] WARNING: SkillTreeUI is on the same GameObject as skillTreePanel!");
+                Debug.LogWarning("[SkillTreeUI] This will cause problems. Consider moving SkillTreeUI to a different GameObject (like HUD_Canvas).");
+                // Don't disable the panel - disable its children instead
+                foreach (Transform child in skillTreePanel.transform)
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                skillTreePanel.SetActive(false);
+            }
             Debug.Log("[SkillTreeUI] SkillTreePanel initialized and disabled");
         }
         else
@@ -82,11 +101,27 @@ public class SkillTreeUI : MonoBehaviour
         // Try to find the panel automatically if you didn't assign it
         if (skillTreePanel == null)
         {
-            GameObject found = GameObject.Find("SkillTreePanel");
-            if (found != null)
+            // Try multiple ways to find the panel
+            skillTreePanel = GameObject.Find("SkillTreePanel");
+            
+            // If not found by name, try to find it in HUD_Canvas
+            if (skillTreePanel == null)
             {
-                skillTreePanel = found;
-                Debug.Log("[SkillTreeUI] Auto-found SkillTreePanel in scene!");
+                GameObject hudCanvas = GameObject.Find("HUD_Canvas");
+                if (hudCanvas != null)
+                {
+                    Transform found = hudCanvas.transform.Find("SkillTreePanel");
+                    if (found != null)
+                    {
+                        skillTreePanel = found.gameObject;
+                        Debug.Log("[SkillTreeUI] Found SkillTreePanel inside HUD_Canvas!");
+                    }
+                }
+            }
+            
+            if (skillTreePanel != null)
+            {
+                Debug.Log($"[SkillTreeUI] Auto-found SkillTreePanel: {skillTreePanel.name}");
             }
             else
             {
@@ -96,10 +131,45 @@ public class SkillTreeUI : MonoBehaviour
             }
         }
 
-        // Make sure panel is disabled at start
+        // Make sure panel is disabled at start (but not if it's the same GameObject as this component)
         if (skillTreePanel != null)
         {
-            skillTreePanel.SetActive(false);
+            if (skillTreePanel == this.gameObject)
+            {
+                // If SkillTreeUI is on the panel itself, disable children instead
+                // Also disable the Canvas component or Image component to hide the panel visually
+                Canvas panelCanvas = skillTreePanel.GetComponent<Canvas>();
+                if (panelCanvas != null)
+                {
+                    panelCanvas.enabled = false;
+                    Debug.Log("[SkillTreeUI] Disabled Canvas component on SkillTreePanel");
+                }
+                
+                UnityEngine.UI.Image panelImage = skillTreePanel.GetComponent<UnityEngine.UI.Image>();
+                if (panelImage != null)
+                {
+                    panelImage.enabled = false;
+                }
+                
+                // Disable all children
+                foreach (Transform child in skillTreePanel.transform)
+                {
+                    child.gameObject.SetActive(false);
+                }
+                Debug.Log("[SkillTreeUI] Disabled all children of SkillTreePanel (component is on panel itself)");
+            }
+            else
+            {
+                skillTreePanel.SetActive(false);
+            }
+            
+            // Also make sure its Canvas parent is active
+            Canvas canvas = skillTreePanel.GetComponentInParent<Canvas>();
+            if (canvas != null && !canvas.gameObject.activeSelf)
+            {
+                Debug.LogWarning($"[SkillTreeUI] Canvas '{canvas.gameObject.name}' is disabled at start. Enabling it...");
+                canvas.gameObject.SetActive(true);
+            }
         }
 
         BuildSkillUI();
@@ -116,30 +186,69 @@ public class SkillTreeUI : MonoBehaviour
         {
             lastUpdateTime = Time.time;
             Debug.Log($"[SkillTreeUI] Update() is running! Frame {updateCounter}, Time: {Time.time:F2}");
+            
+            // Also check panel status every 60 frames
+            if (skillTreePanel != null)
+            {
+                bool panelActive = skillTreePanel.activeInHierarchy;
+                bool componentOnPanel = (skillTreePanel == this.gameObject);
+                Debug.Log($"[SkillTreeUI] Panel status - Active: {panelActive}, ActiveSelf: {skillTreePanel.activeSelf}, ComponentOnPanel: {componentOnPanel}");
+                
+                // Warn if component is disabled
+                if (!this.enabled)
+                {
+                    Debug.LogError("[SkillTreeUI] ERROR: Component is DISABLED! This is why Update() might not be running!");
+                }
+            }
         }
         
-        // Check if any key is pressed (for debugging)
-        if (Input.anyKeyDown)
-        {
-            Debug.Log($"[SkillTreeUI] Key detected! Last pressed key...");
-        }
+        // Check if keys are pressed to open skill tree
+        bool mKey = IsMKeyDown();
+        bool kKey = IsKKeyDown();
+        bool tabKey = IsTabKeyDown();
         
-        // Open or close skill tree when you press M, K, or Tab
-        if (Input.GetKeyDown(KeyCode.M))
+        if (mKey || kKey || tabKey)
         {
-            Debug.Log("[SkillTreeUI] M KEY PRESSED!");
+            string keyPressed = mKey ? "M" : (kKey ? "K" : "Tab");
+            Debug.Log($"[SkillTreeUI] {keyPressed} KEY PRESSED!");
+            Debug.Log($"[SkillTreeUI] Before toggle - Panel: {(skillTreePanel != null ? skillTreePanel.name : "NULL")}, IsOpen: {isOpen}, ComponentOnPanel: {(skillTreePanel == this.gameObject)}");
             ToggleSkillTree();
+            Debug.Log($"[SkillTreeUI] After toggle - Panel active: {(skillTreePanel != null ? skillTreePanel.activeInHierarchy.ToString() : "NULL")}, IsOpen: {isOpen}");
         }
-        else if (Input.GetKeyDown(KeyCode.K))
-        {
-            Debug.Log("[SkillTreeUI] K KEY PRESSED!");
-            ToggleSkillTree();
-        }
-        else if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            Debug.Log("[SkillTreeUI] TAB KEY PRESSED!");
-            ToggleSkillTree();
-        }
+    }
+    
+    // Check if M key is pressed (works with both old and new input systems)
+    bool IsMKeyDown()
+    {
+        #if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.mKey.wasPressedThisFrame;
+        #else
+        return Input.GetKeyDown(KeyCode.M);
+        #endif
+    }
+    
+    // Check if K key is pressed (works with both old and new input systems)
+    bool IsKKeyDown()
+    {
+        #if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame;
+        #else
+        return Input.GetKeyDown(KeyCode.K);
+        #endif
+    }
+    
+    // Check if Tab key is pressed (works with both old and new input systems)
+    bool IsTabKeyDown()
+    {
+        #if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current == null) return false;
+        // Always allow Tab to toggle skill tree, even if UI is focused
+        return Keyboard.current.tabKey.wasPressedThisFrame;
+        #else
+        // Old input system - check Tab key directly
+        // Use GetKeyDown which works even when UI is focused
+        return Input.GetKeyDown(KeyCode.Tab);
+        #endif
     }
     
     // Test button - right-click this component in Inspector and click "Test Toggle Skill Tree"
@@ -180,21 +289,77 @@ public class SkillTreeUI : MonoBehaviour
 
     public void ToggleSkillTree()
     {
+        // Try to find the panel if it's still null
         if (skillTreePanel == null)
         {
-            Debug.LogWarning("[SkillTreeUI] Cannot toggle - skillTreePanel is not assigned! Please assign it in the Inspector.");
-            return;
+            Debug.LogWarning("[SkillTreeUI] Panel is null, trying to find it...");
+            skillTreePanel = GameObject.Find("SkillTreePanel");
+            if (skillTreePanel == null)
+            {
+                Debug.LogError("[SkillTreeUI] Cannot toggle - skillTreePanel is not found! Please assign it in the Inspector or create a GameObject named 'SkillTreePanel'.");
+                return;
+            }
+            Debug.Log($"[SkillTreeUI] Found panel: {skillTreePanel.name}");
         }
 
+        // Make sure the panel's parent Canvas is enabled
+        Canvas parentCanvas = skillTreePanel.GetComponentInParent<Canvas>();
+        if (parentCanvas != null && !parentCanvas.gameObject.activeInHierarchy)
+        {
+            Debug.LogWarning($"[SkillTreeUI] Canvas '{parentCanvas.gameObject.name}' is disabled! Enabling it...");
+            parentCanvas.gameObject.SetActive(true);
+        }
+
+        // Toggle the panel
         isOpen = !isOpen;
-        skillTreePanel.SetActive(isOpen);
         
-        Debug.Log($"[SkillTreeUI] Skill tree panel {(isOpen ? "OPENED" : "CLOSED")}");
+        // Special handling if SkillTreeUI is on the same GameObject as the panel
+        if (skillTreePanel == this.gameObject)
+        {
+            // Enable/disable Canvas and Image components to show/hide the panel
+            Canvas panelCanvas = skillTreePanel.GetComponent<Canvas>();
+            if (panelCanvas != null)
+            {
+                panelCanvas.enabled = isOpen;
+            }
+            
+            UnityEngine.UI.Image panelImage = skillTreePanel.GetComponent<UnityEngine.UI.Image>();
+            if (panelImage != null)
+            {
+                panelImage.enabled = isOpen;
+            }
+            
+            // Enable/disable children
+            foreach (Transform child in skillTreePanel.transform)
+            {
+                child.gameObject.SetActive(isOpen);
+            }
+            Debug.Log($"[SkillTreeUI] Toggled panel visibility (component is on panel itself) - isOpen: {isOpen}");
+        }
+        else
+        {
+            skillTreePanel.SetActive(isOpen);
+        }
         
+        // Force refresh the layout in case it's needed
         if (isOpen)
         {
+            // Make sure all parent objects are active
+            Transform parent = skillTreePanel.transform.parent;
+            while (parent != null)
+            {
+                if (!parent.gameObject.activeSelf)
+                {
+                    Debug.LogWarning($"[SkillTreeUI] Parent '{parent.name}' was disabled! Enabling it...");
+                    parent.gameObject.SetActive(true);
+                }
+                parent = parent.parent;
+            }
+            
             RefreshAll();
         }
+        
+        Debug.Log($"[SkillTreeUI] Skill tree panel {(isOpen ? "OPENED" : "CLOSED")} - Panel active: {skillTreePanel.activeInHierarchy}, Canvas active: {(parentCanvas != null ? parentCanvas.gameObject.activeInHierarchy.ToString() : "N/A")}");
     }
 
     void CloseSkillTree()
