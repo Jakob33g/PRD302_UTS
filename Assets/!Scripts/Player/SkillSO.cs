@@ -58,5 +58,6 @@ public enum SkillType
     TowerRange,       // Makes your towers shoot farther
     TowerFireRate,    // Makes your towers shoot faster
     ResourceGain,     // Makes you gather resources faster
+    Mine,             // Unlocks ability to place mines that explode when enemies step on them
 }
 

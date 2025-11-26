@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 652a66a4de4294a929b6cf6d074b2ae9, type: 3}
+  m_Name: Skill_Mine1
+  m_EditorClassIdentifier: Assembly-CSharp::SkillSO
+  skillID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  skillName: Land Mine
+  description: Unlocks the ability to place mines that explode when enemies step on them. Press B to place a mine.
+  icon: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  skillType: 10
+  flatBonus: 0
+  percentBonus: 0
+  requiredLevel: 2
+  prerequisites: []
+  skillPointCost: 2
+  maxRank: 1
+

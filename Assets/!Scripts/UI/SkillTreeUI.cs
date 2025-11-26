@@ -43,6 +43,10 @@ public class SkillTreeUI : MonoBehaviour
         Debug.Log($"[SkillTreeUI] Awake() called on GameObject: {gameObject.name}");
         Debug.Log($"[SkillTreeUI] Component enabled: {enabled}, GameObject active: {gameObject.activeInHierarchy}");
         
+        // Ensure component and GameObject are always enabled
+        this.enabled = true;
+        this.gameObject.SetActive(true);
+        
         if (!skillTree)
             skillTree = FindAnyObjectByType<SkillTree>();
         if (!playerXP)
@@ -175,11 +179,28 @@ public class SkillTreeUI : MonoBehaviour
         BuildSkillUI();
         RefreshAll();
         
+        // Ensure component is always enabled
+        this.enabled = true;
+        this.gameObject.SetActive(true);
+        
+        Debug.Log($"[SkillTreeUI] Start() complete - Component enabled: {this.enabled}, GameObject active: {this.gameObject.activeInHierarchy}");
+        Debug.Log($"[SkillTreeUI] Ready to receive Tab/M/K key presses!");
         Debug.Log($"[SkillTreeUI] Initialization complete. Panel: {(skillTreePanel != null ? skillTreePanel.name : "NULL")}");
     }
 
     void Update()
     {
+        // Check if component is enabled and GameObject is active
+        if (!this.enabled || !this.gameObject.activeInHierarchy)
+        {
+            if (updateCounter % 300 == 0) // Log every 5 seconds if disabled
+            {
+                Debug.LogWarning($"[SkillTreeUI] Component disabled or GameObject inactive! Enabled: {this.enabled}, Active: {this.gameObject.activeInHierarchy}");
+            }
+            updateCounter++;
+            return;
+        }
+
         // This is just for debugging - it prints messages to check if the script is working
         updateCounter++;
         if (updateCounter % 60 == 0)
@@ -193,31 +214,32 @@ public class SkillTreeUI : MonoBehaviour
                 bool panelActive = skillTreePanel.activeInHierarchy;
                 bool componentOnPanel = (skillTreePanel == this.gameObject);
                 Debug.Log($"[SkillTreeUI] Panel status - Active: {panelActive}, ActiveSelf: {skillTreePanel.activeSelf}, ComponentOnPanel: {componentOnPanel}");
-                
-                // Warn if component is disabled
-                if (!this.enabled)
-                {
-                    Debug.LogError("[SkillTreeUI] ERROR: Component is DISABLED! This is why Update() might not be running!");
-                }
             }
         }
         
         // Check if keys are pressed to open skill tree
+        // Always allow skill tree to open, regardless of time of day or other conditions
+        // Check Tab key first and more frequently
+        bool tabKey = IsTabKeyDown();
         bool mKey = IsMKeyDown();
         bool kKey = IsKKeyDown();
-        bool tabKey = IsTabKeyDown();
         
-        if (mKey || kKey || tabKey)
+        if (tabKey || mKey || kKey)
         {
-            string keyPressed = mKey ? "M" : (kKey ? "K" : "Tab");
-            Debug.Log($"[SkillTreeUI] {keyPressed} KEY PRESSED!");
-            Debug.Log($"[SkillTreeUI] Before toggle - Panel: {(skillTreePanel != null ? skillTreePanel.name : "NULL")}, IsOpen: {isOpen}, ComponentOnPanel: {(skillTreePanel == this.gameObject)}");
+            string keyPressed = tabKey ? "Tab" : (mKey ? "M" : "K");
+            Debug.Log($"[SkillTreeUI] ===== {keyPressed} KEY PRESSED! =====");
+            Debug.Log($"[SkillTreeUI] Before toggle - Panel: {(skillTreePanel != null ? skillTreePanel.name : "NULL")}, IsOpen: {isOpen}");
+            Debug.Log($"[SkillTreeUI] Component enabled: {this.enabled}, GameObject active: {this.gameObject.activeInHierarchy}");
+            
             ToggleSkillTree();
+            
             Debug.Log($"[SkillTreeUI] After toggle - Panel active: {(skillTreePanel != null ? skillTreePanel.activeInHierarchy.ToString() : "NULL")}, IsOpen: {isOpen}");
+            Debug.Log($"[SkillTreeUI] ========================================");
         }
     }
     
     // Check if M key is pressed (works with both old and new input systems)
+    // Always works, even during night or when UI is focused
     bool IsMKeyDown()
     {
         #if ENABLE_INPUT_SYSTEM
@@ -228,6 +250,7 @@ public class SkillTreeUI : MonoBehaviour
     }
     
     // Check if K key is pressed (works with both old and new input systems)
+    // Always works, even during night or when UI is focused
     bool IsKKeyDown()
     {
         #if ENABLE_INPUT_SYSTEM
@@ -240,14 +263,29 @@ public class SkillTreeUI : MonoBehaviour
     // Check if Tab key is pressed (works with both old and new input systems)
     bool IsTabKeyDown()
     {
+        // Always check old input system first (most reliable)
+        bool oldInput = Input.GetKeyDown(KeyCode.Tab);
+        
         #if ENABLE_INPUT_SYSTEM
-        if (Keyboard.current == null) return false;
-        // Always allow Tab to toggle skill tree, even if UI is focused
-        return Keyboard.current.tabKey.wasPressedThisFrame;
+        bool newInput = false;
+        if (Keyboard.current != null)
+        {
+            newInput = Keyboard.current.tabKey.wasPressedThisFrame;
+        }
+        // Use either input system - whichever works
+        bool result = oldInput || newInput;
+        if (result)
+        {
+            Debug.Log($"[SkillTreeUI] Tab detected! OldInput: {oldInput}, NewInput: {newInput}, Keyboard.current: {(Keyboard.current != null ? "exists" : "null")}");
+        }
+        return result;
         #else
-        // Old input system - check Tab key directly
-        // Use GetKeyDown which works even when UI is focused
-        return Input.GetKeyDown(KeyCode.Tab);
+        // Old input system only
+        if (oldInput)
+        {
+            Debug.Log("[SkillTreeUI] Tab detected via old input system!");
+        }
+        return oldInput;
         #endif
     }
     
@@ -257,6 +295,26 @@ public class SkillTreeUI : MonoBehaviour
     {
         Debug.Log("[SkillTreeUI] TestToggle() called from Inspector!");
         ToggleSkillTree();
+    }
+    
+    // Public method to open skill tree (can be called from anywhere)
+    public void OpenSkillTree()
+    {
+        if (!isOpen)
+        {
+            Debug.Log("[SkillTreeUI] OpenSkillTree() called!");
+            ToggleSkillTree();
+        }
+    }
+    
+    // Public method to close skill tree (can be called from anywhere)
+    public void CloseSkillTree()
+    {
+        if (isOpen)
+        {
+            Debug.Log("[SkillTreeUI] CloseSkillTree() called!");
+            ToggleSkillTree();
+        }
     }
 
     void OnEnable()
@@ -360,15 +418,6 @@ public class SkillTreeUI : MonoBehaviour
         }
         
         Debug.Log($"[SkillTreeUI] Skill tree panel {(isOpen ? "OPENED" : "CLOSED")} - Panel active: {skillTreePanel.activeInHierarchy}, Canvas active: {(parentCanvas != null ? parentCanvas.gameObject.activeInHierarchy.ToString() : "N/A")}");
-    }
-
-    void CloseSkillTree()
-    {
-        if (skillTreePanel)
-        {
-            isOpen = false;
-            skillTreePanel.SetActive(false);
-        }
     }
 
     void BuildSkillUI()

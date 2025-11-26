@@ -8,6 +8,8 @@ public class SkillTree : MonoBehaviour
     public PlayerXP playerXP;
     public Health playerHealth;
     public PlayerController playerController;
+    public MineManager mineManager;
+    public Inventory inventory;
 
     [Header("All Skills")]
     [Tooltip("Put all your skill assets here - drag them from the Project window")]
@@ -133,6 +135,8 @@ public class SkillTree : MonoBehaviour
         if (!playerXP) playerXP = GetComponent<PlayerXP>();
         if (!playerHealth) playerHealth = GetComponent<Health>();
         if (!playerController) playerController = GetComponent<PlayerController>();
+        if (!mineManager) mineManager = GetComponent<MineManager>();
+        if (!inventory) inventory = GetComponent<Inventory>();
         
         if (playerHealth != null)
             playerHealth.onDeath.AddListener(OnPlayerDeath);
@@ -205,6 +209,49 @@ public class SkillTree : MonoBehaviour
 
         // Update player stats with new bonuses
         ApplyAllModifiers();
+
+        // Give mines to inventory if this is the mine skill
+        if (skill.skillType == SkillType.Mine && mineManager != null && inventory != null)
+        {
+            // Give 5 mines when skill is first unlocked
+            if (unlockedSkills[id] == 1)
+            {
+                // Try to find the mine item if not assigned
+                if (mineManager.mineItem == null)
+                {
+                    // Try to load it from Resources or find it
+                    var mineItem = Resources.Load<ItemSO>("Mine");
+                    if (mineItem == null)
+                    {
+                        // Try to find it by name
+                        var allItems = Resources.FindObjectsOfTypeAll<ItemSO>();
+                        foreach (var item in allItems)
+                        {
+                            if (item != null && (item.name == "Mine" || item.itemName == "Land Mine"))
+                            {
+                                mineManager.mineItem = item;
+                                Debug.Log($"[SkillTree] Found mine item: {item.name}");
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        mineManager.mineItem = mineItem;
+                    }
+                }
+                
+                if (mineManager.mineItem != null)
+                {
+                    inventory.AddItem(mineManager.mineItem, 5);
+                    Debug.Log($"[SkillTree] Added 5 mines to inventory!");
+                }
+                else
+                {
+                    Debug.LogWarning("[SkillTree] Could not find mine item! Please assign it manually in MineManager component.");
+                }
+            }
+        }
 
         // Tell other scripts that a skill was unlocked
         onSkillUnlocked?.Invoke(skill, unlockedSkills[id]);
@@ -322,6 +369,11 @@ public class SkillTree : MonoBehaviour
         unlockedSkills.Clear();
         modifiersDirty = true;
         ApplyAllModifiers();
+        
+        // Clear all mines when skills reset
+        if (mineManager != null)
+            mineManager.ClearAllMines();
+        
         onSkillsChanged?.Invoke();
         
         // Clear saved skills from PlayerPrefs
