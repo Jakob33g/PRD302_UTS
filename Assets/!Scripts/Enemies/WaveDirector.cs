@@ -28,22 +28,45 @@ public class WaveDirector : MonoBehaviour
 
     int wave = 0;
 
+    void Awake()
+    {
+        // Find references early
+        if (!spawner) spawner = FindAnyObjectByType<EnemySpawner>();
+        if (!cycle) cycle = FindAnyObjectByType<DayNightCycle>();
+    }
+
     void Start()
     {
         if (!spawner) spawner = FindAnyObjectByType<EnemySpawner>();
-        if (!cycle)   Debug.Log("[WaveDirector] No DayNightCycle assigned; using internal wave timers.");
+        if (!cycle)   Debug.LogWarning("[WaveDirector] No DayNightCycle assigned! Enemies will spawn continuously. Assign DayNightCycle to enable day/night spawning.");
+
+        // CRITICAL: Always start with spawning disabled
+        if (spawner)
+        {
+            spawner.spawningEnabled = false;
+            Debug.Log("[WaveDirector] Spawning disabled at start (day mode)");
+        }
 
         if (cycle)
         {
             cycle.onNightStarted.AddListener(OnNightStarted);
             cycle.onDayStarted.AddListener(OnDayStarted);
             // Begin according to current phase
-            if (cycle.IsNight) OnNightStarted();
-            else               OnDayStarted();
+            if (cycle.IsNight) 
+            {
+                Debug.Log("[WaveDirector] Starting in NIGHT phase");
+                OnNightStarted();
+            }
+            else               
+            {
+                Debug.Log("[WaveDirector] Starting in DAY phase");
+                OnDayStarted();
+            }
         }
         else
         {
             // Fallback: start coroutine loop
+            Debug.LogWarning("[WaveDirector] No DayNightCycle found - using fallback timer system");
             StartCoroutine(FallbackWaveLoop());
         }
     }
@@ -73,7 +96,14 @@ public class WaveDirector : MonoBehaviour
     void OnDayStarted()
     {
         EnableSpawning(false);
-        Debug.Log("[Waves] DAY start → Spawning paused.");
+        Debug.Log("[Waves] DAY start → Spawning DISABLED. No enemies will spawn.");
+        
+        // Double-check that spawning is disabled
+        if (spawner != null && spawner.spawningEnabled)
+        {
+            Debug.LogWarning("[WaveDirector] Spawning was still enabled! Forcing it off...");
+            spawner.spawningEnabled = false;
+        }
     }
 
     System.Collections.IEnumerator FallbackWaveLoop()
@@ -120,21 +150,10 @@ public class WaveDirector : MonoBehaviour
     {
         if (!spawner) return;
 
-        // Try field: public bool spawningEnabled
-        var f = spawner.GetType().GetField("spawningEnabled", BindingFlags.Instance | BindingFlags.Public);
-        if (f != null && f.FieldType == typeof(bool))
-        {
-            f.SetValue(spawner, enabled);
-            return;
-        }
-
-        // Try property: public bool spawningEnabled { get; set; }
-        var p = spawner.GetType().GetProperty("spawningEnabled", BindingFlags.Instance | BindingFlags.Public);
-        if (p != null && p.PropertyType == typeof(bool) && p.CanWrite)
-        {
-            p.SetValue(spawner, enabled);
-        }
-        // If neither exists, we just don't pause/resume (older spawner keeps spawning)
+        // Directly set the public field (no reflection needed)
+        spawner.spawningEnabled = enabled;
+        
+        Debug.Log($"[WaveDirector] Spawning {(enabled ? "ENABLED" : "DISABLED")}");
     }
 
     void TryResetWaveQuota(int quota)

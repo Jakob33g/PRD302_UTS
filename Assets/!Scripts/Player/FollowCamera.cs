@@ -8,14 +8,16 @@ public class FollowCamera : MonoBehaviour
 {
     [Header("What to Follow")]
     public Transform target;                 // Drag your Player here
+    [Tooltip("Offset for where camera looks at player. Y value affects height. Keep Y at 0 unless player model's pivot is wrong.")]
     public Vector3 lookOffset = Vector3.zero;
 
     [Header("Camera Angle")]
     [Range(0f, 360f)] public float yaw = 40f;      // Camera rotation left/right (stays fixed, doesn't turn with player)
-    [Range(10f, 85f)] public float tilt = 55f;     // Camera angle up/down (how much you look down at the player)
+    [Range(10f, 85f)] public float tilt = 75f;     // Camera angle up/down (how much you look down at the player) - Higher = more top-down like Don't Starve
 
     [Header("Camera Distance")]
-    public float distance = 12f;                   // How far the camera stays from the player
+    [Tooltip("How far the camera stays from the player. Higher = more zoomed out (Don't Starve style)")]
+    public float distance = 35f;                   // Don't Starve-style zoomed out view (increased from 20f)
 
     // These fields are kept for backward compatibility but are no longer used (zoom is disabled)
     [System.Obsolete("Zoom is disabled. This field is kept for scene compatibility only.")]

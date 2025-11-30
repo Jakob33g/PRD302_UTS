@@ -23,8 +23,8 @@ public class EnemySpawner : MonoBehaviour
     public float spawnUpOffset   = 0.05f;
 
     [Header("Control")]
-    [Tooltip("If false, Update() will not spawn new enemies.")]
-    public bool spawningEnabled = true;
+    [Tooltip("If false, Update() will not spawn new enemies. Enemies only spawn at night.")]
+    public bool spawningEnabled = false;  // Start disabled - WaveDirector will enable at night
 
     [Header("Quota")]
     [Tooltip("How many enemies may spawn this wave. -1 = infinite.")]
@@ -85,7 +85,13 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-        if (!spawningEnabled) return;
+        // CRITICAL: Never spawn if spawning is disabled (day time)
+        if (!spawningEnabled) 
+        {
+            timer = spawnInterval; // Reset timer when disabled
+            return;
+        }
+        
         if (spawnQuotaRemaining == 0) return; // quota exhausted this wave
 
         if ((player == null && (additionalTargets == null || additionalTargets.Length == 0)) ||
