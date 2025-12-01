@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -369,5 +367,3 @@ public class PurchasableItemsUI : MonoBehaviour
         return total;
     }
 }
-
->>>>>>> Incoming (Background Agent changes)

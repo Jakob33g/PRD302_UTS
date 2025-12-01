@@ -36,6 +36,7 @@ public class Enemy : MonoBehaviour
 
     float attackCooldown;
 
+
     // SIGNATURE UNCHANGED
     public void Init(EnemySO so, Transform[] followTargets, EnemySpawner owner)
     {
@@ -54,6 +55,7 @@ public class Enemy : MonoBehaviour
 
         gameObject.SetActive(true);
         attackCooldown = 0f;
+
     }
 
     void Update()

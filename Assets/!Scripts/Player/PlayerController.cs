@@ -11,6 +11,16 @@ public class PlayerController : MonoBehaviour
     Rigidbody rb;
     Vector3 moveInput;
 
+    // Lauren
+    Animator anim;
+    private Vector2 lastMoveDirection;
+
+    void Start()
+
+    {
+        anim = GetComponent<Animator>();
+    }
+    //lauren end
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -30,6 +40,23 @@ public class PlayerController : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
         moveInput = new Vector3(h, 0f, v).normalized;  // Normalize so diagonal movement isn't faster
+
+        //Lauren
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveY = Input.GetAxisRaw("Vertical");
+
+        /* if ((moveX == 0 && moveY == 0) && (moveInput.x != 0 || moveInput.y != 0))
+        {
+            lastMoveDirection = moveInput;
+        } */
+
+        if (moveInput.sqrMagnitude > 0.01f)
+        {
+            lastMoveDirection = new Vector2(moveInput.x, moveInput.z);
+        }
+
+        Animate();
+        // Lauren end
     }
 
     void FixedUpdate()
@@ -40,11 +67,22 @@ public class PlayerController : MonoBehaviour
         vel.z = moveInput.z * moveSpeed;
         rb.linearVelocity = vel;
 
+        /*
         // Turn player to face the direction they're moving (if enabled)
         if (faceMoveDirection && moveInput.sqrMagnitude > 0.0001f)
         {
             Quaternion target = Quaternion.LookRotation(moveInput, Vector3.up);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, 0.2f));
-        }
+        } */ //lauren note: this is opposite of what we wanted for our game
+    }
+
+    // Lauren
+    void Animate()
+    {
+        anim.SetFloat("MoveX", moveInput.x);
+        anim.SetFloat("MoveY", moveInput.z);
+        anim.SetFloat("MoveMagnitude", moveInput.magnitude);
+        anim.SetFloat("LastMoveX", lastMoveDirection.x);
+        anim.SetFloat("LastMoveY", lastMoveDirection.y);
     }
 }

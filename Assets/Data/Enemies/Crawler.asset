@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
   id: enemy_basic
   displayName: Grue
-  prefab: {fileID: 4975053030443679719, guid: ef4e5aeb687ef45849162bd2f3b9d3ac, type: 3}
+  prefab: {fileID: 6641644018913474286, guid: be808005bc003e143b9f4777d3bda713, type: 3}
   maxHealth: 10
   moveSpeed: 2.5
   stopDistance: 1.2
   scale: 1
+  xpReward: 5
   weight: 1
