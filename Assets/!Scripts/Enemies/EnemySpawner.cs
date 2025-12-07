@@ -100,6 +100,9 @@ public class EnemySpawner : MonoBehaviour
         if (so == null || so.prefab == null)
         {
             Debug.LogWarning("EnemySpawner: EnemySO missing prefab.");
+            
+            Debug.LogError("Prefab missing for EnemySO: " + " (" + so.name + ")"); //test
+            
             return;
         }
 

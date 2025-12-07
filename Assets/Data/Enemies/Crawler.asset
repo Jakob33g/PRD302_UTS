@@ -12,11 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70678d1668053451cb3f9be60e27ef1f, type: 3}
   m_Name: Crawler
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
-  id: enemy_basic
-  displayName: Grue
-  prefab: {fileID: 4975053030443679719, guid: ef4e5aeb687ef45849162bd2f3b9d3ac, type: 3}
+  prefab: {fileID: 2271045518886416335, guid: d81e1b1bc46653d4eb232dceefe65914, type: 3}
   maxHealth: 10
   moveSpeed: 2.5
   stopDistance: 1.2
   scale: 1
+  xpReward: 5
   weight: 1
