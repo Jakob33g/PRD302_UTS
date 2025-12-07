@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2e80dc2e3de04accaa96aa4b8dfbcda, type: 3}
+  m_Name: Laser Tower
+  m_EditorClassIdentifier: Assembly-CSharp::TowerSO
+  prefab: {fileID: 4860199753696356849, guid: f910624fef0ace4449c82b58da7643d3, type: 3}
+  costItem: {fileID: 11400000, guid: cd4b7d15617755e48856466828238818, type: 2}
+  costAmount: 1
+  range: 5
+  fireRate: 1
+  damage: 5
+  bulletSpeed: 18
+  projectilePrefab: {fileID: 2252933504872108180, guid: 9f8923039019ecc40885b9d8711ca1bf, type: 3}

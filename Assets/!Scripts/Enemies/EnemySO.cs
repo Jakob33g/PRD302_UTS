@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/Enemy SO", fileName = "NewEnemy")]
 public class EnemySO : ScriptableObject
 {
+    /*
     [Header("Identity")]
     public string id = "enemy_basic";
-    public string displayName = "Grue";
+    public string displayName = "Grue"; */
 
     [Header("Prefab")]
     // A prefab with the Enemy component on the root

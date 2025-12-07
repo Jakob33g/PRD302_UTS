@@ -7,4 +7,7 @@ public class ItemSO : ScriptableObject
     public Sprite icon;
     public bool stackable = true;
     public int maxStack = 64; // Minecraft vibe
+
+    //lauren changes
+    public GameObject prefab;
 }

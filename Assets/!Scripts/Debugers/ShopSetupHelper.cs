@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-
+/*
 /// <summary>
 /// Helper script to diagnose and fix shop setup issues.
 /// Add this to your SkillTreePanel GameObject and it will help set up the shop.
@@ -188,4 +188,4 @@ public class ShopSetupHelper : MonoBehaviour
     }
 }
 
-
+*/

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
+/*
 public class PurchasableItemsUI : MonoBehaviour
 {
     [Header("Links")]
@@ -366,4 +366,4 @@ public class PurchasableItemsUI : MonoBehaviour
             if (!s.IsEmpty && s.item == item) total += s.count;
         return total;
     }
-}
+} */

@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class WorldPickup : MonoBehaviour
 {
@@ -56,6 +57,18 @@ public class WorldPickup : MonoBehaviour
         if (inv == null || item == null || amount <= 0) return;
 
         int leftover = inv.AddItem(item, amount);
+
+        ResourceUI[] gemUIs = Object.FindObjectsByType<ResourceUI>(FindObjectsSortMode.None);
+
+        foreach (var ui in gemUIs)
+        {
+            if (ui.gem == item)
+            {
+                ui.AddAmount(amount - leftover);
+                break;
+            }
+        }
+
         if (leftover == 0)
         {
             // fully stored -> remove pickup
