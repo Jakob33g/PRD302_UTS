@@ -80,16 +80,17 @@ public class PlayerXP : MonoBehaviour
 
     [Header("Testing - Press 2 to Gain XP")]
     [Tooltip("How much XP you get when you press the 2 key (for testing the skill tree)")]
-    public int testXPAmount = 50;
+    public int testXPAmount = 0;
 
     void Update()
     {
+        /*
         // Press the 2 key to gain XP and level up (useful for testing skills)
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             GainXP(testXPAmount);
             Debug.Log($"[XP] TEST: Gained {testXPAmount} XP (Press '2' to test leveling)");
-        }
+        } */
     }
 }
 

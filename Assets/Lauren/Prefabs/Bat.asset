@@ -12,12 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70678d1668053451cb3f9be60e27ef1f, type: 3}
   m_Name: Bat
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
-  id: flying enemy
-  displayName: bat
   prefab: {fileID: 5434529575681929830, guid: 0d5d1b5c5fd711045b1cfb844bb6371d, type: 3}
   maxHealth: 10
   moveSpeed: 2.5
-  stopDistance: 1.2
+  stopDistance: 0.5
   scale: 1
   xpReward: 5
   weight: 2

@@ -1,5 +1,5 @@
 using UnityEngine;
-
+/*
 /// <summary>
 /// Helper script to ensure test keys (Z, X, C) work properly.
 /// Add this to any GameObject in your scene (or the Player) to enable test keys.
@@ -164,5 +164,5 @@ public class TestKeysHelper : MonoBehaviour
         return null;
     }
 }
-
+*/
 
