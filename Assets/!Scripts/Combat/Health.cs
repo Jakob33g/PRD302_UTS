@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class Health : MonoBehaviour
 {
@@ -14,13 +15,30 @@ public class Health : MonoBehaviour
     [System.Serializable] public class HealthChangeEvent : UnityEvent<float, float>{}
     public HealthChangeEvent onHealthChanged;  // Fires when health changes (current, max)
     public UnityEvent onDeath;                 // Fires when health reaches zero
+    private float displayedHP;
+    public float hpAnimSpeed = 8f;
+
+    // lauren
+    public AudioClip hurtSFX;
+    public Image hpBar;
+    public Renderer visual;
+    public float flashDuration = 0.2f; //flash red on damage so playuer sees
+    public StateManager stateManager;
+    private AudioSource audioSource;
+    private Color originalColor;
+    private float flashTimer = 0f;
+    //lauren end
 
     void Awake()
     {
         // Start with full health
         maxHealth = baseMaxHealth;
         currentHealth = maxHealth;
+        displayedHP = currentHealth;
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        audioSource = GetComponent<AudioSource>();
+        originalColor = visual.material.color;
     }
 
     public void SetMaxHealth(float newMax)
@@ -30,6 +48,21 @@ public class Health : MonoBehaviour
         maxHealth = newMax;
         currentHealth = maxHealth * ratio;
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+    void Update()
+    {
+        if (flashTimer > 0f && visual)
+        {
+            flashTimer -= Time.deltaTime;
+            if (flashTimer <= 0f)
+            {
+                visual.material.color = originalColor;
+            }
+        }
+
+        displayedHP = Mathf.Lerp(displayedHP, currentHealth, Time.deltaTime * hpAnimSpeed);
+        hpBar.fillAmount = displayedHP / maxHealth;
     }
 
     [Header("Defense - How Much Damage You Take")]
@@ -45,9 +78,18 @@ public class Health : MonoBehaviour
         float actualDamage = dmg * defenseMultiplier;
         currentHealth = Mathf.Max(0f, currentHealth - Mathf.Max(0f, actualDamage));
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        audioSource.PlayOneShot(hurtSFX);
+        visual.material.color = Color.red;
+        flashTimer = flashDuration;
+        
         
         // Die if health reaches zero
-        if (currentHealth <= 0f) onDeath?.Invoke();
+        if (currentHealth <= 0f) 
+        {
+            onDeath?.Invoke();
+            stateManager.GameOver();
+        }
     }
 
     public void SetDefenseMultiplier(float multiplier)

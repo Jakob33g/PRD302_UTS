@@ -21,19 +21,25 @@ public class GemSpawner : MonoBehaviour
 
     void SpawnGem()
     {
-        int[] freeIndices = GetFreeSpawnIndices();
-        int spawnIndex = freeIndices[Random.Range(0, freeIndices.Length)];
-
         if (currentGems >= maxGems) return;
+
+        int[] freeIndices = GetFreeSpawnIndices();
         if (freeIndices.Length == 0) return;
 
+        int spawnIndex = freeIndices[Random.Range(0, freeIndices.Length)];
         Transform spawn = spawnPoints[spawnIndex];
         ItemSO gemType = gemTypes[Random.Range(0, gemTypes.Length)];
+
         GameObject g = Instantiate(gemType.prefab, spawn.position, Quaternion.identity);
+
+        // Optional: attach a callback for collection
+        WorldPickup pickup = g.GetComponent<WorldPickup>();
+        if (pickup != null) pickup.spawner = this;
 
         occupied[spawnIndex] = true;
         currentGems++;
     }
+
 
     int[] GetFreeSpawnIndices()
     {

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class Enemy : MonoBehaviour
 {
@@ -35,6 +36,12 @@ public class Enemy : MonoBehaviour
     public float attackRate = 1.0f;
 
     float attackCooldown;
+
+    //lauren
+    // tehse are events for the SOs, so dont need to edit this script for each enemy. pls leave
+    public event Action OnAttack;
+    public event Action<int> OnHit;
+    public event Action OnDie;
 
 
     // SIGNATURE UNCHANGED
@@ -105,6 +112,7 @@ public class Enemy : MonoBehaviour
         }
 
         attackCooldown = 1f / Mathf.Max(0.01f, attackRate);
+        OnAttack?.Invoke();
     }
 
     void PickNearest(bool force)
@@ -165,6 +173,8 @@ public class Enemy : MonoBehaviour
     {
         currentHP -= Mathf.Max(0, dmg);
         if (currentHP <= 0) Die();
+
+        OnHit?.Invoke(dmg);
     }
 
     void Die()
@@ -185,5 +195,7 @@ public class Enemy : MonoBehaviour
         // Put enemy back in the pool so it can be reused
         if (spawner) spawner.Despawn(this);
         else gameObject.SetActive(false);
+
+        OnDie?.Invoke();
     }
 }

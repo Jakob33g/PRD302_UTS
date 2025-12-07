@@ -6,3 +6,10 @@ TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 227063
+  packageName: Dynamic Floating Text
+  packageVersion: 
+  assetPath: Assets/Other Asets/TextMesh Pro/Sprites/EmojiOne.json
+  uploadId: 0

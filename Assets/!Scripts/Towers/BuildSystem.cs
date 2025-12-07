@@ -29,6 +29,11 @@ public class BuildSystem : MonoBehaviour
     bool canPlace;
     Transform player; // for min distance
 
+    //lauren
+    public AudioSource audioSource;
+    public AudioClip successSFX;
+    public AudioClip failSFX;
+
     void Awake()
     {
         if (!cam) cam = Camera.main;
@@ -98,7 +103,7 @@ public class BuildSystem : MonoBehaviour
         {
             if (!inventory.Has(currentBP.costItem, currentBP.costAmount))
             {
-                Debug.Log("Not enough resources.");
+                PlayErrorSFX();
                 return;
             }
         }
@@ -130,6 +135,9 @@ public class BuildSystem : MonoBehaviour
 
         // Stay in build mode (place multiple) — comment out next line to stay in build mode
         // CancelBuild();
+
+        PlayBuildSFX();
+
     }
 
     // -------- GHOST --------
@@ -148,7 +156,7 @@ public class BuildSystem : MonoBehaviour
         for (int i = 0; i < ghostRenderers.Length; i++)
         {
             // store original material and set ghost mat
-            ghostOrigMats[i] = ghostRenderers[i].sharedMaterial;
+            ghostRenderers[i].material = ghostOkMat; //removed shared - lauren
             if (ghostOkMat) ghostRenderers[i].sharedMaterial = ghostOkMat;
         }
     }
@@ -184,10 +192,13 @@ public class BuildSystem : MonoBehaviour
     void SetGhostValid(bool ok)
     {
         if (ghostRenderers == null) return;
+
         for (int i = 0; i < ghostRenderers.Length; i++)
         {
-            if (ghostOkMat && ok)        ghostRenderers[i].sharedMaterial = ghostOkMat;
-            else if (ghostBadMat && !ok) ghostRenderers[i].sharedMaterial = ghostBadMat;
+            if (ok && ghostOkMat)
+                ghostRenderers[i].material = ghostOkMat;
+            else if (!ok && ghostBadMat)
+                ghostRenderers[i].material = ghostBadMat;
         }
     }
 
@@ -218,22 +229,22 @@ public class BuildSystem : MonoBehaviour
         if (Keyboard.current.digit1Key.wasPressedThisFrame) return 0;
         if (Keyboard.current.digit2Key.wasPressedThisFrame) return 1;
         if (Keyboard.current.digit3Key.wasPressedThisFrame) return 2;
-        if (Keyboard.current.digit4Key.wasPressedThisFrame) return 3;
+        /* if (Keyboard.current.digit4Key.wasPressedThisFrame) return 3;
         if (Keyboard.current.digit5Key.wasPressedThisFrame) return 4;
         if (Keyboard.current.digit6Key.wasPressedThisFrame) return 5;
         if (Keyboard.current.digit7Key.wasPressedThisFrame) return 6;
         if (Keyboard.current.digit8Key.wasPressedThisFrame) return 7;
-        if (Keyboard.current.digit9Key.wasPressedThisFrame) return 8;
+        if (Keyboard.current.digit9Key.wasPressedThisFrame) return 8; */ //we dont need that many --lauren
         #else
         if (Input.GetKeyDown(KeyCode.Alpha1)) return 0;
         if (Input.GetKeyDown(KeyCode.Alpha2)) return 1;
         if (Input.GetKeyDown(KeyCode.Alpha3)) return 2;
-        if (Input.GetKeyDown(KeyCode.Alpha4)) return 3;
+        /* if (Input.GetKeyDown(KeyCode.Alpha4)) return 3;
         if (Input.GetKeyDown(KeyCode.Alpha5)) return 4;
         if (Input.GetKeyDown(KeyCode.Alpha6)) return 5;
         if (Input.GetKeyDown(KeyCode.Alpha7)) return 6;
         if (Input.GetKeyDown(KeyCode.Alpha8)) return 7;
-        if (Input.GetKeyDown(KeyCode.Alpha9)) return 8;
+        if (Input.GetKeyDown(KeyCode.Alpha9)) return 8; */
         #endif
         return -1;
     }
@@ -272,5 +283,15 @@ public class BuildSystem : MonoBehaviour
         #else
         return Input.mousePosition;
         #endif
+    }
+
+    void PlayBuildSFX()
+    {
+    audioSource.PlayOneShot(successSFX);
+    }
+
+    void PlayErrorSFX()
+    {
+        audioSource.PlayOneShot(failSFX);
     }
 }

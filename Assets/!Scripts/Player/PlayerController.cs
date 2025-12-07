@@ -14,9 +14,13 @@ public class PlayerController : MonoBehaviour
     // Lauren
     Animator anim;
     private Vector2 lastMoveDirection;
+    public AudioClip walkSFX;
+    private AudioSource audioSource;
+    public float stepInterval = 0.4f;
+    private float stepTimer = 0f;
+
 
     void Start()
-
     {
         anim = GetComponent<Animator>();
     }
@@ -26,6 +30,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         moveSpeed = baseMoveSpeed;
         // Important: Make sure Rigidbody has Freeze Rotation X & Z checked in Inspector
+        audioSource = GetComponent<AudioSource>();
     }
 
     public void SetMoveSpeed(float newSpeed)
@@ -56,6 +61,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Animate();
+        WalkSFX();
         // Lauren end
     }
 
@@ -84,5 +90,22 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("MoveMagnitude", moveInput.magnitude);
         anim.SetFloat("LastMoveX", lastMoveDirection.x);
         anim.SetFloat("LastMoveY", lastMoveDirection.y);
+    }
+
+    void WalkSFX()
+    {
+        if (moveInput.sqrMagnitude > 0.01f && walkSFX != null)
+        {
+            stepTimer -= Time.deltaTime;
+            if (stepTimer <= 0f)
+            {
+                audioSource.PlayOneShot(walkSFX);
+                stepTimer = stepInterval;
+            }
+        }
+        else
+        {
+            stepTimer = 0f;
+        }
     }
 }

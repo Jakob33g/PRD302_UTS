@@ -9,6 +9,8 @@ public class BatAnim : MonoBehaviour
     public bool isAttacking = false;
     private bool isDying = false;
     private Color defaultColour;
+    public AudioSource audioSource;
+    public AudioClip deathSFX;
 
     void Awake()
     {
@@ -18,16 +20,23 @@ public class BatAnim : MonoBehaviour
             sr = visualRoot.GetComponent<SpriteRenderer>();
             defaultColour = sr != null ? sr.color : Color.white;
         }
+
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
     {
         if (isDying) return;
-        if(anim != null) anim.SetBool("isAttacking", isAttacking);
+
+        if (anim != null) 
+        {
+            anim.SetBool("isAttacking", isAttacking);
+        }
     }
     public void PerformAttack(Transform target)
     {
         if (isDying || target == null) return;
+
         isAttacking = true;
     }
 
@@ -51,6 +60,8 @@ public class BatAnim : MonoBehaviour
             anim.SetTrigger("Die");
 
         StartCoroutine(FadeAndDespawn());
+
+        audioSource.PlayOneShot(deathSFX);
     }
 
     private void FlashRed()
@@ -83,5 +94,13 @@ public class BatAnim : MonoBehaviour
         }
 
         gameObject.SetActive(false);
+    }
+
+    void LateUpdate()
+    {
+        if (visualRoot != null)
+        {
+            visualRoot.rotation = Quaternion.identity;
+        }
     }
 }

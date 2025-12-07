@@ -3,6 +3,7 @@ using TMPro;
 
 public class WorldPickup : MonoBehaviour
 {
+    public GemSpawner spawner;
     [Header("What to give the player")]
     public ItemSO item;       // assign your Wood ItemSO here in Inspector
     public int amount = 1;    // how many to give on pickup
@@ -12,6 +13,9 @@ public class WorldPickup : MonoBehaviour
     public float bobAmplitude = 0.05f;    // small idle float for visibility
     public float bobSpeed = 3f;
     public bool autoPickup = false;       // if true, picks up on enter (no key)
+
+    public AudioSource audioSource;
+    public AudioClip pickupSFX;
 
     bool inRange;
     Inventory inv;
@@ -64,7 +68,7 @@ public class WorldPickup : MonoBehaviour
         {
             if (ui.gem == item)
             {
-                ui.AddAmount(amount - leftover);
+                ui.AddAmount(1);
                 break;
             }
         }
@@ -72,6 +76,8 @@ public class WorldPickup : MonoBehaviour
         if (leftover == 0)
         {
             // fully stored -> remove pickup
+            audioSource.PlayOneShot(pickupSFX);
+            spawner?.GemCollected(transform);
             Destroy(gameObject);
         }
         else

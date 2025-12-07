@@ -15,7 +15,7 @@ MonoBehaviour:
   prefab: {fileID: 11346224131817823, guid: 9f1eb533c1115194eb3e089b9f693361, type: 3}
   costItem: {fileID: 11400000, guid: 7d956545385bcd04182862135dbbf7b9, type: 2}
   costAmount: 1
-  range: 10
+  range: 4
   fireRate: 0.5
   damage: 5
   bulletSpeed: 18

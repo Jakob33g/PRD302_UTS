@@ -206,7 +206,8 @@ public class SkillTreeUI : MonoBehaviour
         if (updateCounter % 60 == 0)
         {
             lastUpdateTime = Time.time;
-            Debug.Log($"[SkillTreeUI] Update() is running! Frame {updateCounter}, Time: {Time.time:F2}");
+            //Debug.Log($"[SkillTreeUI] Update() is running! Frame {updateCounter}, Time: {Time.time:F2}");
+            // ?????
             
             // Also check panel status every 60 frames
             if (skillTreePanel != null)

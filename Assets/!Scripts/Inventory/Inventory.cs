@@ -13,6 +13,7 @@ public class Inventory : MonoBehaviour
 
     // UI listeners subscribe to this
     public event Action onChanged;
+    public event Action<ItemSO, int> onItemChanged; //above is general
 
     void Awake()
     {
@@ -49,20 +50,28 @@ public class Inventory : MonoBehaviour
             if (backpack[i].IsEmpty)
                 amount = backpack[i].Add(item, amount);
 
+        int totalCount = GetItemCount(item);
+        onItemChanged?.Invoke(item, totalCount);
+
         NotifyChanged();
         return amount; // leftover if couldn't fit
     }
 
     public bool Has(ItemSO item, int amount)
     {
+        /*
         int total = 0;
         foreach (var s in hotbar)    if (!s.IsEmpty && s.item == item) total += s.count;
         foreach (var s in backpack)  if (!s.IsEmpty && s.item == item) total += s.count;
-        return total >= amount;
+        return total >= amount; */
+
+        return GetItemCount(item) >= amount;
+
     }
 
     public bool Remove(ItemSO item, int amount)
     {
+        /*
         if (!Has(item, amount)) return false;
 
         for (int i = 0; i < hotbar.Length && amount > 0; i++)
@@ -73,6 +82,34 @@ public class Inventory : MonoBehaviour
                 amount -= backpack[i].Remove(amount);
 
         NotifyChanged();
+        return true; */
+
+                if (!Has(item, amount)) return false;
+
+        int remaining = amount;
+
+        for (int i = 0; i < hotbar.Length && remaining > 0; i++)
+            if (!hotbar[i].IsEmpty && hotbar[i].item == item)
+                remaining -= hotbar[i].Remove(remaining);
+
+        for (int i = 0; i < backpack.Length && remaining > 0; i++)
+            if (!backpack[i].IsEmpty && backpack[i].item == item)
+                remaining -= backpack[i].Remove(remaining);
+
+        // Notify UI about this specific item
+        int totalCount = GetItemCount(item);
+        onItemChanged?.Invoke(item, totalCount);
+
+        NotifyChanged();
         return true;
+    }
+
+        //test
+        public int GetItemCount(ItemSO item)
+    {
+        int total = 0;
+        foreach (var s in hotbar) if (!s.IsEmpty && s.item == item) total += s.count;
+        foreach (var s in backpack) if (!s.IsEmpty && s.item == item) total += s.count;
+        return total;
     }
 }

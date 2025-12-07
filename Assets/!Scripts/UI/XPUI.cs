@@ -10,12 +10,12 @@ public class XPUI : MonoBehaviour
 
     void OnEnable()
     {
-        if (xp) xp.onXPChanged += OnXP;
+        xp.onXPChanged += OnXP;
         UpdateAll();
     }
     void OnDisable()
     {
-        if (xp) xp.onXPChanged -= OnXP;
+        xp.onXPChanged -= OnXP;
     }
 
     void UpdateAll()

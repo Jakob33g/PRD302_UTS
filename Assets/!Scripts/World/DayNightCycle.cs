@@ -12,9 +12,9 @@ public class DayNightCycle : MonoBehaviour
     [Header("Lighting (optional)")]
     public Light sun;
     [Range(0f, 2f)] public float dayIntensity   = 1.0f;
-    [Range(0f, 2f)] public float nightIntensity = 0.2f;
+    [Range(0f, 4f)] public float nightIntensity = 3f;
     public Color dayColor   = new Color(1f, 0.956f, 0.84f);
-    public Color nightColor = new Color(0.6f, 0.7f, 1.0f);
+    public Color nightColor = new Color(0.2f, 0.25f, 0.4f); //0.6f, 0.7f, 1.0f
 
     [Header("Start Phase")]
     public Phase startPhase = Phase.Day;
@@ -25,6 +25,11 @@ public class DayNightCycle : MonoBehaviour
 
     public Phase CurrentPhase { get; private set; }
     float phaseTimer;
+
+    //lauren
+    public AudioSource audioSource;
+    public AudioClip nightSFX;
+    // end lauren
 
     public bool IsNight => CurrentPhase == Phase.Night;
     public float SecondsRemaining => Mathf.Max(0f, phaseTimer);
@@ -65,7 +70,11 @@ public class DayNightCycle : MonoBehaviour
     void InvokeStartEvent()
     {
         if (CurrentPhase == Phase.Day) onDayStarted?.Invoke();
-        else                           onNightStarted?.Invoke();
+        else
+        {
+            onNightStarted?.Invoke();
+            audioSource.PlayOneShot(nightSFX);
+        }
     }
 
     void ApplyLightingInstant()

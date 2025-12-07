@@ -6,22 +6,44 @@ public class ResourceUI : MonoBehaviour
     public ItemSO gem;
     private int count = 0;
     private TextMeshProUGUI text;
+    private Inventory inventory;
 
     void Awake()
     {
         text = GetComponent<TextMeshProUGUI>();
-        UpdateText();
+        inventory = FindAnyObjectByType<Inventory>();
+
+        if (inventory != null)
+        {
+            inventory.onItemChanged += HandleChanged;
+            int startingAmount = inventory.GetItemCount(gem);
+            UpdateText(startingAmount);
+        }
     }
 
+    void OnDestroy()
+    {
+        if (inventory != null)
+        {
+            inventory.onItemChanged -= HandleChanged;
+        }
+    }
+
+    private void HandleChanged(ItemSO item, int newAmount)
+    {
+        if (item == gem)
+            UpdateText(newAmount);
+    }
     public void AddAmount(int amount)
     {
         count += amount;
-        UpdateText();
+        UpdateText(count);
     }
 
-    void UpdateText()
+    private void UpdateText(int newCount)
     {
-        if (text && gem != null)
+        count = newCount;
+        if (text != null)
             text.text = $"{count}";
     }
 }
